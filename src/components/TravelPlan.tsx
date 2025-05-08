@@ -2,14 +2,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TravelPlanData } from "@/types/travel";
-import { MapPin, Calendar, DollarSign, Plane, Clock, CalendarClock } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Plane, Clock, CalendarClock, Ticket } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TravelPlanProps {
   plan: TravelPlanData;
 }
 
 const TravelPlan = ({ plan }: TravelPlanProps) => {
+  const { toast } = useToast();
+  
   // Helper function to format minutes into hours and minutes
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
@@ -26,8 +30,27 @@ const TravelPlan = ({ plan }: TravelPlanProps) => {
     }
   };
 
+  const handleBookNow = () => {
+    toast({
+      title: "Booking Initiated",
+      description: `Your trip to ${plan.summary.destination} is being processed.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-sky-900">Your Travel Plan</h2>
+        <Button 
+          onClick={handleBookNow}
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+          size="lg"
+        >
+          <Ticket className="mr-2" />
+          Book Now
+        </Button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-sky-50 border-sky-200">
           <CardContent className="pt-6">
@@ -196,6 +219,17 @@ const TravelPlan = ({ plan }: TravelPlanProps) => {
             </Card>
           ))}
         </div>
+      </div>
+
+      <div className="mt-8 text-center">
+        <Button 
+          onClick={handleBookNow}
+          className="bg-purple-600 hover:bg-purple-700 text-white w-full md:w-auto"
+          size="lg"
+        >
+          <Ticket className="mr-2" />
+          Book Now
+        </Button>
       </div>
 
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4 text-blue-800 text-sm">
