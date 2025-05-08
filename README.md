@@ -1,1 +1,1 @@
-#Journey-ai-buddy
+# Journey-ai-buddy
