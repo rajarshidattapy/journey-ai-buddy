@@ -7,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TravelFormData } from "@/types/travel";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TravelFormProps {
   onSubmit: (data: TravelFormData) => void;
@@ -24,6 +25,7 @@ const TravelForm = ({ onSubmit, isLoading }: TravelFormProps) => {
   const [budget, setBudget] = useState("");
   const [travelers, setTravelers] = useState("1");
   const [interests, setInterests] = useState("");
+  const [includeTransportation, setIncludeTransportation] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,6 +38,7 @@ const TravelForm = ({ onSubmit, isLoading }: TravelFormProps) => {
       budget,
       travelers: parseInt(travelers),
       interests,
+      includeTransportation
     });
   };
 
@@ -143,6 +146,21 @@ const TravelForm = ({ onSubmit, isLoading }: TravelFormProps) => {
           className="min-h-[80px]"
           required
         />
+      </div>
+
+      <div className="flex items-center space-x-2 pt-2">
+        <Checkbox 
+          id="transportation" 
+          checked={includeTransportation}
+          onCheckedChange={(checked) => setIncludeTransportation(checked === true)}
+        />
+        <Label 
+          htmlFor="transportation" 
+          className="text-sm font-medium leading-none cursor-pointer flex items-center gap-2"
+        >
+          <Plane className="h-4 w-4" />
+          Include transportation options
+        </Label>
       </div>
       
       <Button 

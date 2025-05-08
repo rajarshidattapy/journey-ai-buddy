@@ -1,9 +1,230 @@
 
-import { TravelFormData, TravelPlanData } from "@/types/travel";
+import { TravelFormData, TravelPlanData, TransportationDetails } from "@/types/travel";
 import { format } from "date-fns";
 
 // We'll prompt the user for their API key since we can't store it securely in the frontend
 let geminiApiKey = "";
+
+// Mock transportation data from SerpAPI
+const mockTransportationData: TransportationDetails = {
+  best_flights: [
+    {
+      flights: [
+        {
+          departure_airport: {
+            name: "Indira Gandhi International Airport",
+            id: "DEL",
+            time: "2025-05-08 23:30"
+          },
+          arrival_airport: {
+            name: "Suvarnabhumi Airport",
+            id: "BKK",
+            time: "2025-05-09 05:25"
+          },
+          duration: 265,
+          airplane: "Airbus A350",
+          airline: "THAI",
+          airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/TG.png",
+          travel_class: "Economy",
+          flight_number: "TG 316",
+          legroom: "32 in",
+          extensions: [
+            "Above average legroom (32 in)",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 245 kg"
+          ],
+          overnight: true
+        },
+        {
+          departure_airport: {
+            name: "Suvarnabhumi Airport",
+            id: "BKK",
+            time: "2025-05-09 07:45"
+          },
+          arrival_airport: {
+            name: "Noi Bai International Airport",
+            id: "HAN",
+            time: "2025-05-09 09:35"
+          },
+          duration: 110,
+          airplane: "Boeing 787",
+          airline: "THAI",
+          airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/TG.png",
+          travel_class: "Economy",
+          flight_number: "TG 560",
+          legroom: "32 in",
+          extensions: [
+            "Above average legroom (32 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 103 kg"
+          ]
+        }
+      ],
+      layovers: [
+        {
+          duration: 140,
+          name: "Suvarnabhumi Airport",
+          id: "BKK"
+        }
+      ],
+      total_duration: 515,
+      carbon_emissions: {
+        this_flight: 349000,
+        typical_for_this_route: 225000,
+        difference_percent: 55
+      },
+      price: 313,
+      type: "One way",
+      airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/TG.png",
+      booking_token: "WyJDalJJTVVSa1NVTnJVWGMxWHpoQlFuTnZURUZDUnkwdExTMHRMUzB0TFMxd1ptNW1OMEZCUVVGQlIyZGpaemhSUkRGa2REUkJFZ3RVUnpNeE5ueFVSelUyTUJvTENKNzBBUkFDR2dOVlUwUTRISENlOUFFPSIsW1siREVMIiwiMjAyNS0wNS0wOCIsIkJLSyIsbnVsbCwiVEciLCIzMTYiXSxbIkJLSyIsIjIwMjUtMDUtMDkiLCJIQU4iLG51bGwsIlRHIiwiNTYwIl1dXQ=="
+    },
+    {
+      flights: [
+        {
+          departure_airport: {
+            name: "Indira Gandhi International Airport",
+            id: "DEL",
+            time: "2025-05-08 18:00"
+          },
+          arrival_airport: {
+            name: "Netaji Subhash Chandra Bose International Airport",
+            id: "CCU",
+            time: "2025-05-08 20:15"
+          },
+          duration: 135,
+          airplane: "Airbus A321neo",
+          airline: "IndiGo",
+          airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/6E.png",
+          travel_class: "Economy",
+          flight_number: "6E 2057",
+          legroom: "28 in",
+          extensions: [
+            "Below average legroom (28 in)",
+            "Carbon emissions estimate: 91 kg"
+          ],
+          often_delayed_by_over_30_min: true
+        },
+        {
+          departure_airport: {
+            name: "Netaji Subhash Chandra Bose International Airport",
+            id: "CCU",
+            time: "2025-05-08 21:45"
+          },
+          arrival_airport: {
+            name: "Noi Bai International Airport",
+            id: "HAN",
+            time: "2025-05-09 02:10"
+          },
+          duration: 175,
+          airplane: "Airbus A320neo",
+          airline: "IndiGo",
+          airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/6E.png",
+          travel_class: "Economy",
+          flight_number: "6E 1631",
+          legroom: "28 in",
+          extensions: [
+            "Below average legroom (28 in)",
+            "Carbon emissions estimate: 122 kg"
+          ],
+          overnight: true
+        }
+      ],
+      layovers: [
+        {
+          duration: 90,
+          name: "Netaji Subhash Chandra Bose International Airport",
+          id: "CCU"
+        }
+      ],
+      total_duration: 400,
+      carbon_emissions: {
+        this_flight: 214000,
+        typical_for_this_route: 225000,
+        difference_percent: -5
+      },
+      price: 366,
+      type: "One way",
+      airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/6E.png",
+      booking_token: "WyJDalJJTVVSa1NVTnJVWGMxWHpoQlFuTnZURUZDUnkwdExTMHRMUzB0TFMxd1ptNW1OMEZCUVVGQlIyZGpaemhSUkRGa2REUkJFZzAyUlRJd05UZDhOa1V4TmpNeEdnc0l5NTBDRUFJYUExVlRSRGdjY011ZEFnPT0iLFtbIkRFTCIsIjIwMjUtMDUtMDgiLCJDQ1UiLG51bGwsIjZFIiwiMjA1NyJdLFsiQ0NVIiwiMjAyNS0wNS0wOCIsIkhBTiIsbnVsbCwiNkUiLCIxNjMxIl1dXQ=="
+    },
+    {
+      flights: [
+        {
+          departure_airport: {
+            name: "Indira Gandhi International Airport",
+            id: "DEL",
+            time: "2025-05-08 22:40"
+          },
+          arrival_airport: {
+            name: "Hong Kong International Airport",
+            id: "HKG",
+            time: "2025-05-09 06:40"
+          },
+          duration: 330,
+          airplane: "Boeing 777",
+          airline: "Cathay Pacific",
+          airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/CX.png",
+          travel_class: "Premium Economy",
+          flight_number: "CX 698",
+          extensions: [
+            "Extra reclining seat",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 454 kg"
+          ],
+          overnight: true
+        },
+        {
+          departure_airport: {
+            name: "Hong Kong International Airport",
+            id: "HKG",
+            time: "2025-05-09 07:45"
+          },
+          arrival_airport: {
+            name: "Noi Bai International Airport",
+            id: "HAN",
+            time: "2025-05-09 08:50"
+          },
+          duration: 125,
+          airplane: "Airbus A321neo",
+          airline: "Hong Kong Express",
+          airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/UO.png",
+          travel_class: "Economy",
+          flight_number: "UO 550",
+          ticket_also_sold_by: [
+            "Cathay Pacific"
+          ],
+          legroom: "28 in",
+          extensions: [
+            "Below average legroom (28 in)",
+            "Carbon emissions estimate: 75 kg"
+          ]
+        }
+      ],
+      layovers: [
+        {
+          duration: 65,
+          name: "Hong Kong International Airport",
+          id: "HKG"
+        }
+      ],
+      total_duration: 520,
+      carbon_emissions: {
+        this_flight: 530000,
+        typical_for_this_route: 225000,
+        difference_percent: 136
+      },
+      price: 800,
+      type: "One way",
+      airline_logo: "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+      booking_token: "WyJDalJJTVVSa1NVTnJVWGMxWHpoQlFuTnZURUZDUnkwdExTMHRMUzB0TFMxd1ptNW1OMEZCUVVGQlIyZGpaemhSUkRGa2REUkJFZ3REV0RZNU9IeFZUelUxTUJvTENON3dCQkFDR2dOVlUwUTRISERlOEFRPSIsW1siREVMIiwiMjAyNS0wNS0wOCIsIkhLRyIsbnVsbCwiQ1giLCI2OTgiXSxbIkhLRyIsIjIwMjUtMDUtMDkiLCJIQU4iLG51bGwsIlVPIiwiNTUwIl1dXQ=="
+    }
+  ]
+};
 
 export async function generateTravelPlan(formData: TravelFormData): Promise<TravelPlanData> {
   if (!geminiApiKey) {
@@ -137,6 +358,12 @@ export async function generateTravelPlan(formData: TravelFormData): Promise<Trav
     try {
       // Parse the JSON string into a JavaScript object
       const travelPlan = JSON.parse(jsonString) as TravelPlanData;
+      
+      // Add transportation data if requested
+      if (formData.includeTransportation) {
+        travelPlan.transportation = mockTransportationData;
+      }
+      
       return travelPlan;
     } catch (error) {
       console.error("Failed to parse Gemini response as JSON:", error);
@@ -156,7 +383,7 @@ function createFallbackResponse(formData: TravelFormData): TravelPlanData {
   const startDateStr = formData.startDate ? format(formData.startDate, "MMM d, yyyy") : "";
   const endDateStr = formData.endDate ? format(formData.endDate, "MMM d, yyyy") : "";
   
-  return {
+  const fallbackResponse: TravelPlanData = {
     summary: {
       source: formData.source,
       destination: formData.destination,
@@ -228,4 +455,11 @@ function createFallbackResponse(formData: TravelFormData): TravelPlanData {
       }
     ]
   };
+  
+  // Add transportation data if requested
+  if (formData.includeTransportation) {
+    fallbackResponse.transportation = mockTransportationData;
+  }
+  
+  return fallbackResponse;
 }
