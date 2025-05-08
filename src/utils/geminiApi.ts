@@ -7,7 +7,8 @@ let geminiApiKey = "";
 
 export async function generateTravelPlan(formData: TravelFormData): Promise<TravelPlanData> {
   if (!geminiApiKey) {
-    geminiApiKey = prompt("Please enter your Gemini API key to generate travel plans:", "") || "";
+    const userInput = window.prompt("Please enter your Gemini API key to generate travel plans:", "");
+    geminiApiKey = userInput || "";
     
     if (!geminiApiKey) {
       throw new Error("API key is required to generate travel plans");
@@ -19,7 +20,7 @@ export async function generateTravelPlan(formData: TravelFormData): Promise<Trav
   const endDateStr = formData.endDate ? format(formData.endDate, "MMM d, yyyy") : "";
 
   // Create a prompt for the Gemini model
-  const prompt = `
+  const promptText = `
     You are a professional travel planner. Please create a detailed travel plan based on the following information:
     
     Source: ${formData.source}
@@ -103,7 +104,7 @@ export async function generateTravelPlan(formData: TravelFormData): Promise<Trav
           {
             parts: [
               {
-                text: prompt
+                text: promptText
               }
             ]
           }
