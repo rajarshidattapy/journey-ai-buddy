@@ -1,11 +1,79 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import TravelForm from "@/components/TravelForm";
+import TravelPlan from "@/components/TravelPlan";
+import LoadingIndicator from "@/components/LoadingIndicator";
+import { TravelFormData, TravelPlanData } from "@/types/travel";
+import { generateTravelPlan } from "@/utils/geminiApi";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [travelPlan, setTravelPlan] = useState<TravelPlanData | null>(null);
+  const { toast } = useToast();
+
+  const handleFormSubmit = async (formData: TravelFormData) => {
+    setIsLoading(true);
+    setTravelPlan(null);
+    
+    try {
+      const plan = await generateTravelPlan(formData);
+      setTravelPlan(plan);
+    } catch (error) {
+      console.error("Error generating travel plan:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate travel plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-blue-100 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-sky-900 mb-4">Journey AI</h1>
+          <p className="text-lg text-sky-700 max-w-2xl mx-auto">
+            Plan your perfect trip with our AI travel assistant. Tell us your preferences, and we'll create a personalized itinerary just for you.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Card className="lg:col-span-1 shadow-md border-sky-200 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-sky-800">Plan Your Journey</CardTitle>
+              <CardDescription>Fill in your travel details below</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TravelForm onSubmit={handleFormSubmit} isLoading={isLoading} />
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2 shadow-md border-sky-200 min-h-[400px] bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-sky-800">Your Travel Plan</CardTitle>
+              <CardDescription>AI-generated itinerary based on your preferences</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center h-64">
+                  <LoadingIndicator />
+                  <p className="mt-4 text-sky-700">Crafting your perfect journey...</p>
+                </div>
+              ) : travelPlan ? (
+                <TravelPlan plan={travelPlan} />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-64 text-sky-700">
+                  <p>Fill in your travel details to generate a personalized itinerary.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
