@@ -1,8 +1,7 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { TravelPlanData } from "@/types/travel";
-import { MapPin, Calendar, DollarSign, Plane, Clock, CalendarClock, Ticket } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Plane, Clock, CalendarClock, Ticket, ExternalLink } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -37,10 +36,35 @@ const TravelPlan = ({ plan }: TravelPlanProps) => {
     });
   };
 
-  const handleBookFlight = (flightType: string, price: number) => {
+  const handleBookFlight = (flight: any) => {
+    // Extract origin and destination
+    const origin = flight.flights[0]?.departure_airport?.id || '';
+    const destination = flight.flights[flight.flights.length - 1]?.arrival_airport?.id || '';
+    
+    // Format the outbound date if available in first flight
+    const departureTime = flight.flights[0]?.departure_airport?.time || '';
+    let outboundDate = '';
+    
+    try {
+      if (departureTime) {
+        // Parse the date and format it for Google Flights URL
+        outboundDate = format(parseISO(departureTime), 'yyyy-MM-dd');
+      }
+    } catch (e) {
+      console.error("Error parsing departure date:", e);
+      // Default to today if parsing fails
+      outboundDate = format(new Date(), 'yyyy-MM-dd');
+    }
+    
+    // Construct Google Flights URL
+    const googleFlightsUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${destination}%20from%20${origin}%20on%20${outboundDate}`;
+    
+    // Open in new tab
+    window.open(googleFlightsUrl, '_blank');
+    
     toast({
-      title: "Flight Booking Initiated",
-      description: `Your ${flightType} flight for $${price} is being processed.`,
+      title: "Opening Google Flights",
+      description: `Searching for flights from ${origin} to ${destination}`,
     });
   };
 
@@ -174,12 +198,12 @@ const TravelPlan = ({ plan }: TravelPlanProps) => {
 
                     <div className="mt-3">
                       <Button
-                        onClick={() => handleBookFlight(flight.type, flight.price)}
+                        onClick={() => handleBookFlight(flight)}
                         className="bg-purple-600 hover:bg-purple-700 text-white"
                         size="sm"
                       >
-                        <Ticket className="mr-1 h-3.5 w-3.5" />
-                        Book This Flight
+                        <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                        Book on Google Flights
                       </Button>
                     </div>
                   </div>

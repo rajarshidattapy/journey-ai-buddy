@@ -1,10 +1,6 @@
 import { TravelFormData, TravelPlanData, TransportationDetails } from "@/types/travel";
 import { format } from "date-fns";
 
-// We'll prompt the user for their API key since we can't store it securely in the frontend
-let geminiApiKey = "";
-let serpApiKey = "";
-
 // Mock transportation data as fallback in case the API fails
 const mockTransportationData: TransportationDetails = {
   best_flights: [
@@ -227,14 +223,9 @@ const mockTransportationData: TransportationDetails = {
 };
 
 // Function to fetch flight data from SerpAPI
-async function fetchTransportationData(formData: TravelFormData): Promise<TransportationDetails | null> {
+async function fetchTransportationData(formData: TravelFormData, serpApiKey: string): Promise<TransportationDetails | null> {
   if (!serpApiKey) {
-    const userInput = window.prompt("Please enter your SerpAPI key to fetch flight information:", "");
-    serpApiKey = userInput || "";
-    
-    if (!serpApiKey) {
-      return null;
-    }
+    return null;
   }
   
   try {
@@ -277,7 +268,15 @@ async function fetchTransportationData(formData: TravelFormData): Promise<Transp
   }
 }
 
-export async function generateTravelPlan(formData: TravelFormData): Promise<TravelPlanData> {
+export async function generateTravelPlan(
+  formData: TravelFormData, 
+  savedGeminiKey?: string, 
+  savedSerpKey?: string
+): Promise<TravelPlanData> {
+  // Check if we have an API key from the settings or prompt for one
+  let geminiApiKey = savedGeminiKey || "";
+  let serpApiKey = savedSerpKey || "";
+  
   if (!geminiApiKey) {
     const userInput = window.prompt("Please enter your Gemini API key to generate travel plans:", "");
     geminiApiKey = userInput || "";
@@ -413,7 +412,7 @@ export async function generateTravelPlan(formData: TravelFormData): Promise<Trav
       // Add transportation data if requested
       if (formData.includeTransportation) {
         // Try to fetch real transportation data from SerpAPI
-        const transportationData = await fetchTransportationData(formData);
+        const transportationData = await fetchTransportationData(formData, serpApiKey);
         
         // Use real data if available, otherwise fall back to mock data
         travelPlan.transportation = transportationData || mockTransportationData;
