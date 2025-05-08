@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import TravelForm from "@/components/TravelForm";
@@ -87,6 +86,19 @@ const TravelPlanner = () => {
     </div>
   );
 };
+
+// Initialize environment variables
+const ENV_GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''; 
+const ENV_SERP_API_KEY = import.meta.env.VITE_SERP_API_KEY || '';
+
+// Set the hardcoded API keys if not already defined in .env
+if (!ENV_GEMINI_API_KEY) {
+  window.localStorage.setItem('gemini_api_key', 'AIzaSyAuhQZd0R6SlKqgRDo-5xugIqXfSNJHrcw');
+}
+
+if (!ENV_SERP_API_KEY) {
+  window.localStorage.setItem('serp_api_key', '86d76877b39fa985d531bd93737f6e2ba44c21ede157ddc8777a6844597f7de4');
+}
 
 const Index = () => {
   return (
