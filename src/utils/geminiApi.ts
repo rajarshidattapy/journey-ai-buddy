@@ -1,11 +1,11 @@
-
 import { TravelFormData, TravelPlanData, TransportationDetails } from "@/types/travel";
 import { format } from "date-fns";
 
 // We'll prompt the user for their API key since we can't store it securely in the frontend
 let geminiApiKey = "";
+let serpApiKey = "";
 
-// Mock transportation data from SerpAPI
+// Mock transportation data as fallback in case the API fails
 const mockTransportationData: TransportationDetails = {
   best_flights: [
     {
@@ -226,6 +226,57 @@ const mockTransportationData: TransportationDetails = {
   ]
 };
 
+// Function to fetch flight data from SerpAPI
+async function fetchTransportationData(formData: TravelFormData): Promise<TransportationDetails | null> {
+  if (!serpApiKey) {
+    const userInput = window.prompt("Please enter your SerpAPI key to fetch flight information:", "");
+    serpApiKey = userInput || "";
+    
+    if (!serpApiKey) {
+      return null;
+    }
+  }
+  
+  try {
+    // Format the date correctly for the API
+    const outboundDate = formData.startDate ? format(formData.startDate, "yyyy-MM-dd") : "";
+    
+    const url = new URL("https://serpapi.com/search.json");
+    url.searchParams.append("engine", "google_flights");
+    url.searchParams.append("type", "2"); // one-way flights
+    url.searchParams.append("departure_id", formData.source.split(',')[0].trim()); // Assuming first part is city code
+    url.searchParams.append("arrival_id", formData.destination.split(',')[0].trim()); // Assuming first part is city code
+    url.searchParams.append("outbound_date", outboundDate);
+    url.searchParams.append("currency", "USD");
+    url.searchParams.append("hl", "en");
+    url.searchParams.append("api_key", serpApiKey);
+    
+    console.log("Fetching flight data from SerpAPI:", url.toString());
+    
+    const response = await fetch(url.toString());
+    
+    if (!response.ok) {
+      throw new Error(`SerpAPI responded with status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log("SerpAPI response:", data);
+    
+    // Map the SerpAPI response to our TransportationDetails structure
+    if (data.best_flights && Array.isArray(data.best_flights)) {
+      return {
+        best_flights: data.best_flights
+      };
+    } else {
+      console.error("Unexpected SerpAPI response format:", data);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching transportation data:", error);
+    return null;
+  }
+}
+
 export async function generateTravelPlan(formData: TravelFormData): Promise<TravelPlanData> {
   if (!geminiApiKey) {
     const userInput = window.prompt("Please enter your Gemini API key to generate travel plans:", "");
@@ -361,7 +412,11 @@ export async function generateTravelPlan(formData: TravelFormData): Promise<Trav
       
       // Add transportation data if requested
       if (formData.includeTransportation) {
-        travelPlan.transportation = mockTransportationData;
+        // Try to fetch real transportation data from SerpAPI
+        const transportationData = await fetchTransportationData(formData);
+        
+        // Use real data if available, otherwise fall back to mock data
+        travelPlan.transportation = transportationData || mockTransportationData;
       }
       
       return travelPlan;
