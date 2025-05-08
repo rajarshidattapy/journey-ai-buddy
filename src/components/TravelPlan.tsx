@@ -37,6 +37,13 @@ const TravelPlan = ({ plan }: TravelPlanProps) => {
     });
   };
 
+  const handleBookFlight = (flightType: string, price: number) => {
+    toast({
+      title: "Flight Booking Initiated",
+      description: `Your ${flightType} flight for $${price} is being processed.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -164,6 +171,17 @@ const TravelPlan = ({ plan }: TravelPlanProps) => {
                         </ul>
                       </div>
                     )}
+
+                    <div className="mt-3">
+                      <Button
+                        onClick={() => handleBookFlight(flight.type, flight.price)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                        size="sm"
+                      >
+                        <Ticket className="mr-1 h-3.5 w-3.5" />
+                        Book This Flight
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
